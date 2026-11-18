@@ -68,6 +68,7 @@
   # Enable the KDE Plasma Desktop Environment.
   services.displayManager.sddm.enable = true;
   services.desktopManager.plasma6.enable = true;
+  programs.niri.enable = true;
 
   # Configure keymap in X11
   services.xserver.xkb = {
@@ -122,6 +123,8 @@
       kdePackages.kasts
       kdePackages.kdenlive
       kdePackages.francis
+      kdePackages.kclock
+      kdePackages.kweather
       haruna
       #end
       podman-compose
@@ -130,18 +133,23 @@
       vscodium
       fastfetch
       wayland-utils
-      appimage-run
+      #appimage-run
       gimp
       krita
       heroic
       lutris
-      godot
+      godot_4_7
       protontricks
       vulkan-tools
       github-desktop
       libreoffice
-      libresprite
+      #libresprite
       lmms-full
+      qbittorrent
+      noctalia
+      waybar
+      alacritty
+      kitty
       #obs
       obs-studio
       obs-studio-plugins.obs-pipewire-audio-capture
@@ -167,6 +175,25 @@
     remotePlay.openFirewall = true;  # Open ports in the firewall for Steam Remote Play
     dedicatedServer.openFirewall = true; # Open ports for Source Dedicated Server hosting
     # Other general flags if available can be set here.
+  };
+
+  programs.nix-ld.enable = true;
+  programs.nix-ld.libraries = with pkgs; [
+    # Add any missing dynamic libraries for unpackaged programs
+    # here, NOT in environment.systemPackages
+  ];
+
+  #Enable appimage
+  programs.appimage.enable = true;
+  programs.appimage.binfmt = true;
+  programs.appimage.package = pkgs.appimage-run.override 
+  {
+    extraPkgs = pkgs: 
+    [
+      pkgs.icu
+      pkgs.libxcrypt-legacy
+      pkgs.python312
+    ]; 
   };
 
   #Enable gamemode
@@ -202,12 +229,14 @@
   };
   system.autoUpgrade = {
     enable = true;
-    #flake = inputs.self.outPath;
     dates = "daily";
     allowReboot = false;  # Set to true if you want automatic reboots
+    #flake = inputs.self.outPath;
   };
 
-#enable podman
+  zramSwap.enable = true;
+
+  #enable podman
   virtualisation = {
     containers.enable = true;
     podman = {
@@ -226,7 +255,7 @@
   # List packages installed in system profile.
   # You can use https://search.nixos.org/ to find more packages (and options).
    environment.systemPackages = with pkgs; [
-     neovim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
+     neovim
      wget
      curl
      htop
@@ -237,6 +266,10 @@
      git
      unrar
      gvfs
+     fuse
+     fuse3
+     (pkgs.ffmpeg-full.override { withUnfree = true; })
+     android-tools
    ];
 
   # Some programs need SUID wrappers, can be configured further or are
@@ -250,7 +283,7 @@
   # List services that you want to enable:
 
   # Enable the OpenSSH daemon.
-   services.openssh = {
+  services.openssh = {
     enable = true;
     settings = {
       PasswordAuthentication = false;
